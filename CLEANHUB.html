@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Hub | Dashboard Kebersihan Desa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Palet Warna Aksen */
+        :root {
+            --primary-color: #00bcd4; /* Biru Aqua */
+            --accent-color: #4dd0e1;  
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+            --sidebar-width: 250px; /* Lebar Sidebar */
+        }
+
+        /* ------------------------------------- */
+        /* 1. STYLING SIDEBAR (NAVIGASI KIRI) */
+        /* ------------------------------------- */
+        .sidebar-nav {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: var(--sidebar-width); 
+            background-color: #fff; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1050; 
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-y: auto; 
+        }
+
+        /* Styling Main Content Wrapper */
+        .main-content {
+            margin-left: var(--sidebar-width); 
+            transition: margin-left 0.3s;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Logo/Brand */
+        .sidebar-brand {
+            padding: 15px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color) !important;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        /* Sidebar Navigation Links */
+        .sidebar-nav .nav-link {
+            color: var(--dark-color);
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            background-color: var(--primary-color);
+            color: white !important;
+        }
+
+        /* Styling Tombol di Sidebar */
+        .sidebar-buttons {
+            margin-top: auto; 
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        /* ------------------------------------- */
+        /* 2. RESPONSIVITAS (HP & TABLET) */
+        /* ------------------------------------- */
+        @media (max-width: 991.98px) { 
+            .main-content {
+                margin-left: 0; 
+            }
+            
+            .header-top-bar {
+                position: sticky;
+                top: 0;
+                background-color: white;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                z-index: 1000;
+                padding: 10px 15px;
+            }
+        }
+        
+        /* ------------------------------------- */
+        /* 3. STYLING KOMPONEN LAIN */
+        /* ------------------------------------- */
+        .btn-lapor {
+            background-color: var(--primary-color);
+            border: none;
+            font-weight: 600;
+            padding: 10px 25px;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+        .btn-lapor:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        /* Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1060;
+        }
+
+        .notification-bell {
+            position: relative;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .notification-bell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .notification-bell i {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            width: 350px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1061;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .notification-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f8f9fa;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            margin-right: 10px;
+            width: 16px;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            margin-bottom: 2px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .notification-close {
+            margin-left: 10px;
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        .no-notifications {
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* Mobile Notification Styles */
+        @media (max-width: 991.98px) {
+            .notification-container {
+                position: static;
+                margin-left: auto;
+                margin-right: 10px;
+            }
+
+            .notification-bell {
+                width: 40px;
+                height: 40px;
+            }
+
+            .notification-bell i {
+                font-size: 18px;
+            }
+
+            .notification-badge {
+                width: 18px;
+                height: 18px;
+                font-size: 10px;
+            }
+
+            .notification-dropdown {
+                width: calc(100vw - 40px);
+                max-width: 320px;
+                right: -10px;
+            }
+        }
+        .hero-section {
+            background: linear-gradient(135deg, var(--light-color) 0%, #e3f2fd 50%, var(--primary-color) 100%);
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(0,188,212,0.1)"/><circle cx="80" cy="80" r="3" fill="rgba(0,188,212,0.1)"/><circle cx="60" cy="30" r="1.5" fill="rgba(0,188,212,0.1)"/></svg>');
+            opacity: 0.5;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .stat-card {
+            border-left: 5px solid var(--primary-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .clickable-stat {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .clickable-stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .map-section {
+            min-height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none; 
+        }
+        .status-badge-diproses { background-color: #ffc107; }
+        .status-badge-selesai { background-color: #28a745; }
+        .status-badge-diajukan { background-color: var(--primary-color); }
+        .bg-info.text-white {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+        }
+
+        /* Feature Card Hover Effects */
+        .feature-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+        }
+        .feature-card:hover .icon-wrapper i {
+            transform: scale(1.1);
+            color: var(--accent-color) !important;
+        }
+        .feature-card:hover h4 {
+            color: var(--primary-color) !important;
+        }
+
+        /* Staggered Animation Keyframes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar-nav offcanvas-lg offcanvas-start" tabindex="-1" id="sidebarNav" aria-labelledby="sidebarNavLabel">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-recycle me-2"></i>Clean Hub
+        </div>
+        
+        <div class="offcanvas-header d-lg-none">
+            <h5 class="offcanvas-title fw-bold" id="sidebarNavLabel">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarNav" aria-label="Close"></button>
+        </div>
+        
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link active" href="#hero">
+                <i class="fa-solid fa-house me-2"></i> Beranda
+            </a></li>
+            <li class="nav-item"><a class="nav-link" href="#pemantauan">
+                <i class="fa-solid fa-chart-line me-2"></i> Pemantauan Global
+            </a></li>
+            <li class="nav-item d-none" id="officerDashboardLink">
+                <a class="nav-link" href="#dashboardPetugas">
+                    <i class="fa-solid fa-person-digging me-2"></i> Tugas Saya
+                </a>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="#carakerja">
+                <i class="fa-solid fa-road me-2"></i> Cara Kerja
+            </a></li>
+            <li class="nav-item"><a class="nav-link" href="#bantuan">
+                <i class="fa-solid fa-headset me-2"></i> Bantuan
+            </a></li>
+            <li class="nav-item d-none" id="profileLink">
+                <a class="nav-link" href="#profil">
+                    <i class="fa-solid fa-user me-2"></i> Profil
+                </a>
+            </li>
+            <li class="nav-item d-none" id="historyLink">
+                <a class="nav-link" href="#riwayat">
+                    <i class="fa-solid fa-history me-2"></i> Riwayat Laporan
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#pengaturan-privasi">
+                    <i class="fa-solid fa-shield-alt me-2"></i> Pengaturan Privasi
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#izin-aplikasi">
+                    <i class="fa-solid fa-key me-2"></i> Izin Aplikasi
+                </a>
+            </li>
+        </ul>
+
+            <div class="sidebar-buttons d-grid gap-2">
+                <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#authModal">
+                    <i class="fa-solid fa-user me-2"></i>Akun
+                </button>
+                <button class="btn btn-lapor text-white" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Laporkan Sampah
+                </button>
+            </div>
+    </nav>
+
+    <!-- Notification Container -->
+    <div class="notification-container">
+        <div class="notification-bell" id="notificationBell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationBadge"></span>
+        </div>
+        <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-header">Notifikasi</div>
+            <ul class="list-unstyled" id="notificationList">
+                <li><a class="dropdown-item text-center text-muted" href="#" id="noNotifications">Belum ada notifikasi</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="mainContent" class="main-content">
+        
+        <header class="header-top-bar d-lg-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <button class="btn btn-outline-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarNav" aria-controls="sidebarNav">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <span class="navbar-brand m-0">Clean Hub</span>
+                <button class="btn btn-sm btn-lapor text-white" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+            </div>
+        </header>
+
+        <section id="hero" class="hero-section">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-12">
+                        <h1 class="display-4 fw-bold mb-3">
+                            <span style="color: var(--primary-color);">Bersama Wujudkan</span> Desa Bebas Sampah.
+                        </h1>
+                        <p class="lead mb-4 text-muted">
+                            Solusi digital pengaduan dan pemantauan sampah desa berbasis cloud.
+                        </p>
+                        <button class="btn btn-lapor btn-lg text-white" data-bs-toggle="modal" data-bs-target="#reportModal">
+                            Mulai Laporkan Sekarang
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fitur Utama Section -->
+        <section class="py-5 bg-white" id="fitur-utama">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Fitur Utama Clean Hub</h2>
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card p-4 h-100 rounded-3 shadow-sm" style="transition: all 0.3s ease; animation: fadeInUp 0.6s ease-out;">
+                            <div class="icon-wrapper mb-3">
+                                <i class="fa-solid fa-camera fa-4x" style="color: var(--primary-color); transition: all 0.3s ease;"></i>
+                            </div>
+                            <h4 class="fw-bold mb-3">Pelaporan Cepat</h4>
+                            <p class="text-muted">Ambil foto sampah dan laporkan dalam hitungan detik dengan GPS otomatis untuk lokasi akurat.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card p-4 h-100 rounded-3 shadow-sm" style="transition: all 0.3s ease; animation: fadeInUp 0.8s ease-out;">
+                            <div class="icon-wrapper mb-3">
+                                <i class="fa-solid fa-chart-line fa-4x" style="color: #28a745; transition: all 0.3s ease;"></i>
+                            </div>
+                            <h4 class="fw-bold mb-3">Tracking Real-time</h4>
+                            <p class="text-muted">Pantau status penanganan laporan Anda secara langsung dari dashboard pemantauan.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="feature-card p-4 h-100 rounded-3 shadow-sm" style="transition: all 0.3s ease; animation: fadeInUp 1s ease-out;">
+                            <div class="icon-wrapper mb-3">
+                                <i class="fa-solid fa-users fa-4x" style="color: #ffc107; transition: all 0.3s ease;"></i>
+                            </div>
+                            <h4 class="fw-bold mb-3">Kolaborasi Komunitas</h4>
+                            <p class="text-muted">Bergabung dengan warga lainnya dalam menjaga kebersihan desa melalui sistem iuran dan insentif.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimoni Pengguna Section -->
+        <section class="py-5 bg-light" id="testimoni">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Apa Kata Pengguna Clean Hub</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-user-circle fa-3x text-muted"></i>
+                                </div>
+                                <p class="card-text">"Clean Hub membuat saya mudah melaporkan sampah liar di sekitar rumah. Sekarang desa jauh lebih bersih!"</p>
+                                <h6 class="card-title fw-bold">Siti Aminah</h6>
+                                <small class="text-muted">Warga RT 02/RW 05</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-user-circle fa-3x text-muted"></i>
+                                </div>
+                                <p class="card-text">"Sebagai petugas, aplikasi ini membantu saya mengelola tugas dengan efisien. Sistem iuran juga adil."</p>
+                                <h6 class="card-title fw-bold">Bambang Sudiro</h6>
+                                <small class="text-muted">Petugas Kebersihan</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-user-circle fa-3x text-muted"></i>
+                                </div>
+                                <p class="card-text">"Tracking real-time sangat membantu. Saya bisa tahu kapan sampah di depan rumah saya dibersihkan."</p>
+                                <h6 class="card-title fw-bold">Ahmad Rahman</h6>
+                                <small class="text-muted">Warga RT 03/RW 07</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dampak Lingkungan Section -->
+        <section class="py-5 bg-light" id="dampak-lingkungan">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Dampak Lingkungan</h2>
+                <div class="row text-center mb-5">
+                    <div class="col-md-3 mb-4">
+                        <div class="p-4 bg-white rounded shadow-sm">
+                            <i class="fa-solid fa-tree fa-3x mb-3" style="color: #28a745;"></i>
+                            <h3 class="display-6 fw-bold mb-1" id="treesPlanted">2,500</h3>
+                            <p class="text-muted">Pohon Ditanam</p>
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-success fw-bold">75% dari Target</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="p-4 bg-white rounded shadow-sm">
+                            <i class="fa-solid fa-recycle fa-3x mb-3" style="color: var(--primary-color);"></i>
+                            <h3 class="display-6 fw-bold mb-1" id="wasteRecycled">1,800</h3>
+                            <p class="text-muted">Ton Sampah Didaur Ulang</p>
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" style="width: 60%; background-color: var(--primary-color);" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-primary fw-bold">60% dari Target</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="p-4 bg-white rounded shadow-sm">
+                            <i class="fa-solid fa-water fa-3x mb-3" style="color: #007bff;"></i>
+                            <h3 class="display-6 fw-bold mb-1" id="waterSaved">45,000</h3>
+                            <p class="text-muted">Liter Air Dihindari Pembuangan</p>
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 90%;" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-info fw-bold">90% dari Target</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="p-4 bg-white rounded shadow-sm">
+                            <i class="fa-solid fa-leaf fa-3x mb-3" style="color: #ffc107;"></i>
+                            <h3 class="display-6 fw-bold mb-1" id="co2Reduced">320</h3>
+                            <p class="text-muted">Ton CO2 Berkurang</p>
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-warning fw-bold">80% dari Target</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100" style="background: rgba(255,255,255,0.9);">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 fw-bold" style="color: #2e7d32;"><i class="fa-solid fa-chart-line me-2"></i>Progress Kebersihan 2025</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="environmentalChart" width="400" height="200"></canvas>
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted">Target Tahunan</span>
+                                        <span class="fw-bold">78%</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 78%" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100" style="background: rgba(255,255,255,0.9);">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 fw-bold" style="color: #2e7d32;"><i class="fa-solid fa-trophy me-2"></i>Pencapaian Bulanan</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="achievement-item mb-3 p-3 rounded" style="background: linear-gradient(45deg, #e8f5e8, #f1f8e9);">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fa-solid fa-medal fa-2x text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">Desa Terbersih</h6>
+                                            <p class="mb-0 text-muted small">Clean Hub mendapat penghargaan dari pemerintah daerah</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="achievement-item mb-3 p-3 rounded" style="background: linear-gradient(45deg, #e3f2fd, #f3e5f5);">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fa-solid fa-star fa-2x text-info"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">1000+ Laporan</h6>
+                                            <p class="mb-0 text-muted small">Masyarakat aktif melaporkan masalah sampah</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="achievement-item p-3 rounded" style="background: linear-gradient(45deg, #fff3e0, #fce4ec);">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fa-solid fa-heart fa-2x text-danger"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">Komunitas Peduli</h6>
+                                            <p class="mb-0 text-muted small">800+ warga bergabung dalam gerakan peduli lingkungan</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted">Metrik ini diperbarui secara real-time berdasarkan aktivitas pengelolaan sampah di desa.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Berita & Pengumuman Section -->
+        <section class="py-5 bg-white" id="berita-pengumuman">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Berita & Pengumuman</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-newspaper fa-2x me-3" style="color: var(--primary-color);"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Program Daur Ulang Baru</h5>
+                                        <small class="text-muted">5 Oktober 2024</small>
+                                    </div>
+                                </div>
+                                <p class="card-text">Kami meluncurkan program daur ulang baru untuk plastik dan kertas. Warga dapat menukarkan sampah dengan poin yang bisa ditukar voucher belanja.</p>
+                                <a href="#" class="btn btn-outline-primary btn-sm">Baca Selengkapnya</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-bullhorn fa-2x me-3" style="color: #ffc107;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Jadwal Pengangkutan Sampah</h5>
+                                        <small class="text-muted">3 Oktober 2024</small>
+                                    </div>
+                                </div>
+                                <p class="card-text">Pengangkutan sampah mingguan akan dimulai lebih awal mulai minggu depan. Jadwal baru: Senin pagi pukul 06:00 - 08:00.</p>
+                                <a href="#" class="btn btn-outline-warning btn-sm">Lihat Jadwal Lengkap</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-trophy fa-2x me-3" style="color: #28a745;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Pemenang Lomba Kebersihan</h5>
+                                        <small class="text-muted">1 Oktober 2024</small>
+                                    </div>
+                                </div>
+                                <p class="card-text">Selamat kepada RT 05/RW 02 yang memenangkan lomba kebersihan bulanan! Hadiah akan diserahkan pada acara desa minggu depan.</p>
+                                <a href="#" class="btn btn-outline-success btn-sm">Lihat Foto Pemenang</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-exclamation-triangle fa-2x me-3" style="color: #dc3545;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Peringatan Cuaca Ekstrem</h5>
+                                        <small class="text-muted">28 September 2024</small>
+                                    </div>
+                                </div>
+                                <p class="card-text">Hujan deras diperkirakan terjadi besok. Warga diminta menjaga kebersihan saluran air dan tidak membuang sampah sembarangan.</p>
+                                <a href="#" class="btn btn-outline-danger btn-sm">Info Lebih Lanjut</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-calendar fa-2x me-3" style="color: #17a2b8;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Agenda Mendatang</h5>
+                                        <small class="text-muted">15 November 2024</small>
+                                    </div>
+                                </div>
+                                <p class="card-text">Rapat warga bulanan akan diadakan minggu depan. Agenda utama: pembahasan program kebersihan 2025 dan pengumpulan iuran.</p>
+                                <a href="#" class="btn btn-outline-info btn-sm">Lihat Agenda Lengkap</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-exclamation-circle fa-2x me-3" style="color: #dc3545;"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">Pengumuman Penting</h5>
+                                        <small class="text-muted">10 November 2024</small>
+                                    </div>
+                                </div>
+                                <p class="card-text">Perubahan jadwal pengangkutan sampah mulai bulan depan. Warga diharapkan menyesuaikan waktu pembuangan sampah.</p>
+                                <a href="#" class="btn btn-outline-danger btn-sm">Baca Pengumuman</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-lapor text-white">Lihat Semua Berita</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5 bg-white" id="statistik">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Statistik Pemantauan Real-time</h2>
+                <div class="row text-center">
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="p-4 bg-white stat-card clickable-stat" 
+                            data-bs-toggle="modal" data-bs-target="#statsDetailModal" data-stats-type="total">
+                            <i class="fa-solid fa-chart-line fa-3x mb-3" style="color: var(--primary-color);"></i>
+                            <h3 class="display-5 fw-bold mb-1" id="totalLaporan">1,245</h3>
+                            <p class="text-muted">Total Laporan Masuk</p>
+                            <small class="text-primary fw-bold">Lihat Detail <i class="fa-solid fa-arrow-right-long"></i></small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <div class="p-4 bg-white stat-card clickable-stat" 
+                            style="border-left-color: #28a745;" data-bs-toggle="modal" data-bs-target="#statsDetailModal" data-stats-type="selesai">
+                            <i class="fa-solid fa-check-circle fa-3x mb-3" style="color: #28a745;"></i>
+                            <h3 class="display-5 fw-bold mb-1" id="laporanSelesai">1,012</h3>
+                            <p class="text-muted">Selesai Ditangani</p>
+                            <small class="text-success fw-bold">Lihat Detail <i class="fa-solid fa-arrow-right-long"></i></small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <div class="p-4 bg-white stat-card clickable-stat" 
+                            style="border-left-color: #ffc107;" data-bs-toggle="modal" data-bs-target="#statsDetailModal" data-stats-type="aktif">
+                            <i class="fa-solid fa-bell fa-3x mb-3" style="color: #ffc107;"></i>
+                            <h3 class="display-5 fw-bold mb-1" id="laporanAktif">233</h3>
+                            <p class="text-muted">Laporan Aktif (Menunggu)</p>
+                            <small class="text-warning fw-bold">Lihat Detail <i class="fa-solid fa-arrow-right-long"></i></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="pemantauan" class="py-5 bg-light" style="display: none;">
+            <div class="container">
+                <h2 class="text-center mb-4 fw-bold">Dashboard Pemantauan Global</h2>
+                
+                <div class="d-flex justify-content-center mb-4">
+                    <button class="btn btn-dark active me-2" id="btnListView" onclick="toggleView('list')">
+                        <i class="fa-solid fa-list me-2"></i>Tampilan List
+                    </button>
+                    <button class="btn btn-outline-dark" id="btnMapView" onclick="toggleView('map')">
+                        <i class="fa-solid fa-map-location-dot me-2"></i>Tampilan Peta
+                    </button>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white fw-bold">Filter Laporan</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="filterStatus" class="form-label small">Status</label>
+                                        <select class="form-select" id="filterStatus" onchange="filterReports()">
+                                            <option value="all" selected>Semua Status</option>
+                                            <option value="diajukan">Diajukan</option>
+                                            <option value="diproses">Diproses</option>
+                                            <option value="selesai">Selesai</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="filterKategori" class="form-label small">Kategori Sampah</label>
+                                        <select class="form-select" id="filterKategori" onchange="filterReports()">
+                                            <option value="all" selected>Semua Kategori</option>
+                                            <option value="plastik">Plastik/Kering</option>
+                                            <option value="basah">Organik/Basah</option>
+                                            <option value="liar">Bangunan Liar</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold">
+                                <i class="fa-solid fa-clipboard-list me-2"></i>Laporan Ditemukan (<span id="countLaporan">0</span>)
+                            </div>
+                            <div class="list-group list-group-flush" id="reportListContainer">
+                                </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-7 mt-4 mt-lg-0">
+                        <div class="map-section shadow-lg" id="mapViewContainer">
+                            <iframe 
+                                src="https://maps.google.com/maps?q=Jln+parakan+saat+2+rt+05+rw+09+kel+cisaranten+endah+kec+Arcamanik+Bandung&t=&z=14&ie=UTF8&iwloc=&output=embed" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                        <div id="listViewContainer" class="p-4 bg-white shadow-sm rounded">
+                            <h4 class="fw-bold mb-3">Informasi Laporan</h4>
+                            <p class="text-muted">Pilih salah satu laporan di kolom kiri untuk melihat detail cepat di sini.</p>
+                            <hr>
+                            <div id="selectedReportDetail">
+                                <p class="text-center text-info">Belum ada laporan yang dipilih.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboardPetugas" class="py-5" style="background-color: #e0f7fa; display: none;">
+            <div class="container">
+                <h2 class="mb-4 fw-bold text-center">Dashboard Petugas Kebersihan</h2>
+                
+                <div class="card shadow-lg p-4 mb-4 border-start border-5 border-success">
+                    <h4 class="fw-bold mb-2 text-success">
+                        <i class="fa-solid fa-wallet me-2"></i> Dompet Tugas (Iuran Warga)
+                    </h4>
+                    <h1 class="display-4 fw-bold" id="officerBalanceDisplay">Rp 0</h1>
+                    <p class="text-muted mb-0">Dana yang terkumpul dari iuran warga untuk tugas yang telah diselesaikan.</p>
+                </div>
+
+                <div class="card shadow-lg p-4 mb-4">
+                    <h4 class="fw-bold mb-0">Selamat Datang, <span id="officerNameDisplay">Nama Petugas</span>!</h4>
+                    <p class="text-muted mb-3">Area Kerja: Desa Cisaranten Endah. (Simulasi)</p>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h5 class="fw-bold text-warning" id="taskActiveCount">0</h5>
+                            <small class="text-muted">Tugas Aktif Saya</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="fw-bold text-success" id="taskCompletedToday">0</h5>
+                            <small class="text-muted">Selesai Saya Tangani</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="fw-bold mb-3">Daftar Tugas Masuk</h3>
+                <div class="table-responsive bg-white rounded shadow-sm">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col"># ID</th>
+                                <th scope="col">Lokasi</th>
+                                <th scope="col">Kategori</th>
+                                <th scope="col">Biaya Jasa</th> 
+                                <th scope="col">Status Pengerjaan</th>
+                                <th scope="col">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="officerTaskList">
+                            </tbody>
+                    </table>
+                </div>
+                <p class="mt-3 text-muted small text-center">Data real-time disinkronkan dari server utama.</p>
+            </div>
+        </section>
+
+        <section id="carakerja" class="py-5 bg-white" style="display: none;">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Cara Kerja Clean Hub</h2>
+                <ul class="timeline">
+                    
+                    <li class="timeline-inverted">
+                        <div class="timeline-badge"><i class="fa-solid fa-camera"></i></div>
+                        <div class="timeline-panel bg-light">
+                            <div class="timeline-heading">
+                                <h4 class="timeline-title fw-bold" style="color: var(--primary-color);">1. Laporkan Cepat & Akurat</h4>
+                            </div>
+                            <div class="timeline-body">
+                                <p class="text-muted">Ambil foto/video sampah dan kirimkan laporan lengkap dengan lokasi GPS otomatis. Laporan Anda langsung terdaftar di sistem.</p>
+                                <small class="text-dark">Fitur terkait: Pelaporan Sampah, Integrasi GPS, Validasi Laporan.</small>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li>
+                        <div class="timeline-badge"><i class="fa-solid fa-truck-fast"></i></div>
+                        <div class="timeline-panel bg-light">
+                            <div class="timeline-heading">
+                                <h4 class="timeline-title fw-bold" style="color: var(--primary-color);">2. Tracking Penanganan</h4>
+                            </div>
+                            <div class="timeline-body">
+                                <p class="text-muted">Laporan diteruskan ke petugas terdekat. Anda dapat memantau progres status penanganan secara *real-time* di Dashboard Pemantauan.</p>
+                                <small class="text-dark">Fitur terkait: Tracking Penanganan, Dashboard Pemantauan, Notifikasi.</small>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="timeline-inverted">
+                        <div class="timeline-badge"><i class="fa-solid fa-check-double"></i></div>
+                        <div class="timeline-panel bg-light">
+                            <div class="timeline-heading">
+                                <h4 class="timeline-title fw-bold" style="color: var(--primary-color);">3. Verifikasi & Selesai</h4>
+                            </div>
+                            <div class="timeline-body">
+                                <p class="text-muted">Setelah petugas selesai, Anda akan menerima notifikasi penyelesaian dan bukti foto area yang telah dibersihkan.</p>
+                                <small class="text-dark">Fitur terkait: Notifikasi, Validasi Laporan, Akun Pengguna (Riwayat Laporan).</small>
+                            </div>
+                        </div>
+                    </li>
+
+                </ul>
+            </div>
+        </section>
+
+        <section id="bantuan" class="py-5 bg-light" style="display: none;">
+            <div class="container text-center">
+                <h2 class="mb-4 fw-bold">Butuh Bantuan atau Ada Masalah?</h2>
+                <p class="lead text-muted mb-4">Mempermudah user meminta bantuan atau melapor masalah aplikasi.</p>
+                <button class="btn btn-lg btn-lapor text-white me-3" data-bs-toggle="modal" data-bs-target="#chatBotModal">
+                    <i class="fa-solid fa-headset me-2"></i>Chat dengan Bot
+                </button>
+                <button class="btn btn-lg btn-outline-dark" data-bs-toggle="modal" data-bs-target="#complaintFormModal">
+                    <i class="fa-solid fa-envelope me-2"></i>Form Pengaduan
+                </button>
+            </div>
+        </section>
+
+        <section id="profil" class="py-5 bg-white" style="display: none;">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Profil Pengguna</h2>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Informasi Akun</h5>
+                                <p><strong>Nama:</strong> <span id="userName">Nama Pengguna</span></p>
+                                <p><strong>Email:</strong> <span id="userEmail">email@example.com</span></p>
+                                <p><strong>Role:</strong> Warga</p>
+                                <button class="btn btn-primary">Edit Profil</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="riwayat" class="py-5 bg-white" style="display: none;">
+            <div class="container">
+                <h2 class="text-center mb-5 fw-bold">Riwayat Laporan</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Judul</th>
+                                <th>Status</th>
+                                <th>Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userReportHistory">
+                            <!-- Populate with user's reports -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+
+
+<section id="pengaturan-privasi" class="py-5 bg-white" style="display: none;">
+    <div class="container">
+        <h2 class="text-center mb-5 fw-bold">Pengaturan Privasi</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Kontrol Privasi Data</h5>
+                        <p>Kelola bagaimana data Anda digunakan dalam aplikasi Clean Hub.</p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="shareData">
+                            <label class="form-check-label" for="shareData">
+                                Bagikan data laporan anonim untuk analisis lingkungan
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="locationTracking">
+                            <label class="form-check-label" for="locationTracking">
+                                Izinkan pelacakan lokasi untuk laporan akurat
+                            </label>
+                        </div>
+                        <button class="btn btn-primary mt-3">Simpan Pengaturan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="izin-aplikasi" class="py-5 bg-white" style="display: none;">
+    <div class="container">
+        <h2 class="text-center mb-5 fw-bold">Izin Aplikasi</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Izin yang Diperlukan</h5>
+                        <p>Aplikasi Clean Hub memerlukan izin berikut untuk berfungsi dengan baik:</p>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <i class="fa-solid fa-camera me-2"></i> Kamera: Untuk mengambil foto laporan sampah
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fa-solid fa-map-marker-alt me-2"></i> Lokasi: Untuk menentukan lokasi laporan secara akurat
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fa-solid fa-bell me-2"></i> Notifikasi: Untuk menerima update status laporan
+                            </li>
+                        </ul>
+                        <p class="mt-3">Anda dapat mengelola izin ini di pengaturan perangkat Anda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-dark text-white pt-5 pb-3">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <h5 class="fw-bold text-white"><i class="fa-solid fa-recycle me-2"></i>Clean Hub</h5>
+                        <p class="text-white-50">Solusi digital untuk lingkungan desa yang lebih bersih dan terpantau. Kelompok: **WORKDAYS WARRIORS**</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h5 class="fw-bold">Tautan Cepat</h5>
+                        <ul class="list-unstyled text-white-50">
+                            <li><a href="#pemantauan" class="text-decoration-none text-white-50">Pemantauan Global</a></li>
+                            <li><a href="#" class="text-decoration-none text-white-50">Halaman Petugas</a></li>
+                            <li><a href="#" class="text-decoration-none text-white-50">Riwayat Laporan</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h5 class="fw-bold">Legalitas & Dukungan</h5>
+                        <ul class="list-unstyled text-white-50">
+                            <li><a href="#" class="text-decoration-none text-white-50">Kebijakan Privasi</a></li>
+                            <li><a href="#" class="text-decoration-none text-white-50">Pengaturan Izin Aplikasi</a></li>
+                            <li><a href="#" class="text-decoration-none text-white-50">Kontak Kami</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <hr class="text-white-50">
+                <div class="text-center">
+                    <p class="mb-0 text-white-50">© 2025 Clean Hub. All Rights Reserved.</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+    <div class="modal fade" id="statsDetailModal" tabindex="-1" aria-labelledby="statsDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--primary-color);">
+                    <h5 class="modal-title text-white" id="statsDetailModalLabel"><i class="fa-solid fa-chart-bar me-2"></i> Detail Statistik Laporan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h4 id="statsDetailTitle" class="fw-bold mb-3">Judul Detail Statistik</h4>
+                    <p id="statsDetailSummary" class="text-muted"></p>
+                    
+                    <div id="statsDetailContent">
+                        <div class="list-group list-group-flush" id="detailedReportList">
+                            <div class="text-center p-5 text-muted">Memuat data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--primary-color);">
+                    <h5 class="modal-title text-white" id="reportModalLabel"><i class="fa-solid fa-location-arrow me-2"></i> Laporkan Titik Sampah</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reportForm">
+                        <div class="mb-3">
+                            <label for="reportPhoto" class="form-label fw-bold">1. Foto atau Video Sampah</label>
+                            <div id="photoPreviewContainer">
+                                <img id="photoPreview" src="#" alt="Preview Foto">
+                                <span id="previewText" class="text-muted small">Maksimal 5MB, JPG/PNG/MP4</span>
+                            </div>
+                            <input class="form-control" type="file" id="reportPhoto" accept="image/*,video/*" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reportLocation" class="form-label fw-bold">2. Lokasi GPS Otomatis</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-map-pin"></i></span>
+                                <input type="text" class="form-control" id="reportLocation" value="Jln. Parakan Saat 2, Bandung (Simulasi GPS)" readonly required>
+                                <button type="button" class="btn btn-outline-secondary" onclick="simulateGps()"><i class="fa-solid fa-sync"></i></button>
+                            </div>
+                            <small class="form-text text-muted">Aplikasi akan menggunakan lokasi perangkat Anda.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reportCategory" class="form-label fw-bold">3. Kategori Sampah</label>
+                            <select class="form-select" id="reportCategory" required>
+                                <option value="" selected disabled>Pilih Kategori Sampah</option>
+                                <option value="plastik">Plastik & Kering</option>
+                                <option value="organik">Organik & Basah</option>
+                                <option value="medis">Limbah Medis/B3</option>
+                                <option value="liar">Tumpukan Liar</option>
+                                <option value="lain">Lain-lain</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reportDescription" class="form-label fw-bold">4. Deskripsi Singkat</label>
+                            <textarea class="form-control" id="reportDescription" rows="3" placeholder="Contoh: Tumpukan sampah di depan rumah kosong. Bau menyengit." required></textarea>
+                            <small class="form-text text-muted">Maksimal 150 karakter.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-lapor w-100 text-white mt-3 btn-lg">
+                            <i class="fa-solid fa-cloud-upload-alt me-2"></i> Kirim Laporan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="chatBotModal" tabindex="-1" aria-labelledby="chatBotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--primary-color);">
+                    <h5 class="modal-title text-white" id="chatBotModalLabel"><i class="fa-solid fa-robot me-2"></i> CleanBot Bantuan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="chatWindow" class="p-3" style="min-height: 400px; max-height: 400px; overflow-y: auto; background-color: #f7f7f7;">
+                        <div class="d-flex mb-3 justify-content-start">
+                            <div class="p-2 rounded-3 text-white" style="background-color: var(--primary-color);">
+                                Halo! Saya CleanBot. Ada yang bisa saya bantu terkait laporan sampah atau masalah teknis?
+                            </div>
+                        </div>
+                        <div class="d-flex mb-3 justify-content-end">
+                            <div class="p-2 rounded-3 bg-white border shadow-sm">
+                                Bagaimana cara melacak status laporan saya?
+                            </div>
+                        </div>
+                         <div class="d-flex mb-3 justify-content-start">
+                            <div class="p-2 rounded-3 text-white" style="background-color: var(--primary-color);">
+                                Anda bisa melihat status laporan di halaman **Dashboard Pemantauan**, atau di menu **Riwayat Laporan** setelah Anda login.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-2">
+                    <input type="text" class="form-control me-2" placeholder="Ketik pesan Anda...">
+                    <button class="btn btn-lapor text-white"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="complaintFormModal" tabindex="-1" aria-labelledby="complaintFormModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--primary-color);">
+                    <h5 class="modal-title text-white" id="complaintFormModalLabel"><i class="fa-solid fa-envelope me-2"></i> Form Pengaduan Manual</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pengaduanForm">
+                        <div class="mb-3">
+                            <label for="pengaduNama" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="pengaduNama" placeholder="Contoh: Budi Santoso" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pengaduEmail" class="form-label">Email/No. HP</label>
+                            <input type="text" class="form-control" id="pengaduEmail" placeholder="Contoh: 0812xxxxxx" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pengaduTipe" class="form-label">Tipe Pengaduan</label>
+                            <select class="form-select" id="pengaduTipe" required>
+                                <option value="" selected disabled>Pilih Tipe</option>
+                                <option value="teknis">Masalah Teknis Aplikasi</option>
+                                <option value="laporan">Masalah Laporan/Penanganan</option>
+                                <option value="saran">Saran & Masukan</option>
+                                <option value="lain">Lain-lain</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pengaduDeskripsi" class="form-label">Deskripsi Pengaduan</label>
+                            <textarea class="form-control" id="pengaduDeskripsi" rows="4" placeholder="Jelaskan detail pengaduan Anda..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-lapor w-100 text-white mt-3">
+                            <i class="fa-solid fa-paper-plane me-2"></i>Kirim Pengaduan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body p-4">
+                    
+                    <ul class="nav nav-pills nav-fill mb-4" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="pills-login-tab" data-bs-toggle="pill" data-bs-target="#pills-login" type="button" role="tab" aria-controls="pills-login" aria-selected="true">
+                                Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-register-tab" data-bs-toggle="pill" data-bs-target="#pills-register" type="button" role="tab" aria-controls="pills-register" aria-selected="false">
+                                Daftar
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="pills-tabContent">
+                        
+                        <div class="tab-pane fade show active" id="pills-login" role="tabpanel" aria-labelledby="pills-login-tab">
+                            <h5 class="text-center mb-4 fw-bold">Selamat Datang di Clean Hub</h5>
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label for="loginEmail" class="form-label">Email / No. HP</label>
+                                    <input type="text" class="form-control" id="loginEmail" placeholder="Masukkan Email atau Nomor HP" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="loginPassword" class="form-label">Kata Sandi</label>
+                                    <input type="password" class="form-control" id="loginPassword" placeholder="Masukkan Kata Sandi" required>
+                                </div>
+                                <div class="d-flex justify-content-between mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">Ingat Saya</label>
+                                    </div>
+                                    <a href="#" class="text-decoration-none" style="color: var(--primary-color);">Lupa Kata Sandi?</a>
+                                </div>
+                                <button type="submit" class="btn w-100 mb-3 text-white" style="background-color: var(--primary-color);">
+                                    <i class="fa-solid fa-right-to-bracket me-2"></i>Login
+                                </button>
+                                <button type="button" class="btn w-100" style="background-color: #db4437; color: white;">
+                                    <i class="fa-brands fa-google me-2"></i>Login dengan Google
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-register" role="tabpanel" aria-labelledby="pills-register-tab">
+                            <h5 class="text-center mb-4 fw-bold">Buat Akun Baru</h5>
+                            <form id="registerForm">
+                                <div class="mb-3">
+                                    <label for="regNama" class="form-label">Nama Lengkap</label>
+                                    <input type="text" class="form-control" id="regNama" placeholder="Masukkan Nama Anda" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="regEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="regEmail" placeholder="Masukkan Email Aktif" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="regPassword" class="form-label">Kata Sandi</label>
+                                    <input type="password" class="form-control" id="regPassword" placeholder="Buat Kata Sandi" required>
+                                </div>
+                                <button type="submit" class="btn w-100 mb-3 text-white" style="background-color: var(--primary-color);">
+                                    <i class="fa-solid fa-user-plus me-2"></i>Daftar
+                                </button>
+                                <button type="button" class="btn w-100" style="background-color: #db4437; color: white;">
+                                    <i class="fa-brands fa-google me-2"></i>Daftar dengan Google
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        
+        // ==============================================
+        // DATA SIMULASI & GLOBAL VARIABLES
+        // ==============================================
+        
+        const IURAN_PER_TASK = 50000; // Fixed amount per completed task (Simulasi)
+
+        // Data Petugas Simulasi
+        const currentOfficer = {
+            id: 'P001',
+            name: 'Bambang Sudiro',
+            area: 'Cisaranten Endah',
+            balance: 50000 // Initial balance (Simulasi)
+        };
+
+        // SIMULASI LOGIN PETUGAS: Ubah ke 'false' untuk melihat tampilan non-petugas
+        let isOfficerLoggedIn = false;
+
+        // Data Laporan Contoh (dengan tambahan iuranPerTask dan isPaid)
+        const reports = [
+            // NEW FIELDS: iuranPerTask, isPaid
+            { id: 1, status: 'diajukan', kategori: 'plastik', title: 'Sampah Plastik di Jalan Utama', location: 'RT 01/RW 03', time: '2 jam lalu', desc: 'Tumpukan botol plastik di pinggir jalan desa. Perlu segera dibersihkan.', assignedTo: null, completedBy: null, iuranPerTask: IURAN_PER_TASK, isPaid: false },
+            { id: 2, status: 'diproses', kategori: 'basah', title: 'Tumpukan Sampah Organik', location: 'Dekat Sungai', time: '1 hari lalu', desc: 'Sampah sisa sayuran dan buah busuk yang menyebabkan bau tak sedap.', assignedTo: 'P001', completedBy: null, iuranPerTask: IURAN_PER_TASK, isPaid: false },
+            { id: 3, status: 'selesai', kategori: 'liar', title: 'Bangunan Liar di Lahan Kosong', location: 'Lapangan Desa', time: '3 hari lalu', desc: 'Puing-puing sisa bangunan liar yang sudah dibongkar oleh petugas.', assignedTo: 'P002', completedBy: 'Petugas Budi', iuranPerTask: IURAN_PER_TASK, isPaid: true }, 
+            { id: 4, status: 'diajukan', kategori: 'basah', title: 'Limbah Sayuran di Pasar', location: 'Area Pasar Desa', time: 'Baru dilaporkan', desc: 'Sampah pasar yang menggunung di belakang kios. Perlu penanganan rutin.', assignedTo: null, completedBy: null, iuranPerTask: IURAN_PER_TASK, isPaid: false },
+            { id: 5, status: 'diproses', kategori: 'plastik', title: 'Banyak Botol Bekas', location: 'Sekitar Sekolah', time: '1 jam lalu', desc: 'Kotak minum dan botol bekas yang ditinggalkan siswa di luar jam sekolah.', assignedTo: 'P003', completedBy: null, iuranPerTask: IURAN_PER_TASK, isPaid: false },
+            { id: 6, status: 'selesai', kategori: 'plastik', title: 'Sampah Sudah Bersih', location: 'Jalan Kenanga', time: '4 jam lalu', desc: 'Sudah dibersihkan.', assignedTo: 'P001', completedBy: 'Bambang Sudiro', iuranPerTask: IURAN_PER_TASK, isPaid: true }, 
+
+        ];
+        
+        // Simpan referensi DOM
+        const totalLaporan = document.getElementById('totalLaporan');
+        const laporanSelesai = document.getElementById('laporanSelesai');
+        const laporanAktif = document.getElementById('laporanAktif');
+        const reportListContainer = document.getElementById('reportListContainer');
+        const countLaporan = document.getElementById('countLaporan');
+        const selectedReportDetail = document.getElementById('selectedReportDetail');
+        const mainSections = document.querySelectorAll('#mainContent > section');
+
+        // Notification System
+        let notifications = [];
+        let notificationIdCounter = 1;
+
+        // Notification Functions
+        function addNotification(message, type = 'info') {
+            const notification = {
+                id: notificationIdCounter++,
+                message: message,
+                type: type,
+                timestamp: new Date()
+            };
+            notifications.unshift(notification);
+            updateNotificationBadge();
+            renderNotifications();
+        }
+
+        function removeNotification(id) {
+            notifications = notifications.filter(n => n.id !== id);
+            updateNotificationBadge();
+            renderNotifications();
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            const count = notifications.length;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notificationList');
+            const noNotifications = document.getElementById('noNotifications');
+
+            if (notifications.length === 0) {
+                list.innerHTML = '<li><h6 class="dropdown-header">Notifikasi</h6></li><li><a class="dropdown-item text-center text-muted" href="#" id="noNotifications">Belum ada notifikasi</a></li>';
+                return;
+            }
+
+            let html = '<li><h6 class="dropdown-header">Notifikasi</h6></li>';
+            notifications.forEach(notification => {
+                const timeAgo = getTimeAgo(notification.timestamp);
+                const iconClass = getNotificationIcon(notification.type);
+                html += `
+                    <li>
+                        <a class="dropdown-item d-flex align-items-start" href="#" onclick="removeNotification(${notification.id})">
+                            <i class="${iconClass} me-2 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <div class="small">${notification.message}</div>
+                                <small class="text-muted">${timeAgo}</small>
+                            </div>
+                            <button class="btn btn-sm btn-close ms-2" onclick="event.stopPropagation(); removeNotification(${notification.id})"></button>
+                        </a>
+                    </li>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Baru saja';
+            if (minutes < 60) return `${minutes} menit lalu`;
+            if (hours < 24) return `${hours} jam lalu`;
+            return `${days} hari lalu`;
+        }
+
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'success': return 'fa-solid fa-check-circle text-success';
+                case 'warning': return 'fa-solid fa-exclamation-triangle text-warning';
+                case 'error': return 'fa-solid fa-times-circle text-danger';
+                default: return 'fa-solid fa-info-circle text-info';
+            }
+        }
+
+        // ==============================================
+        // CORE FUNCTIONS
+        // ==============================================
+
+        // Fungsi Navigasi Sidebar (Menampilkan/Menyembunyikan Section)
+        function navigateToSection(targetId) {
+            mainSections.forEach(s => s.style.display = 'none');
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+
+            // Update active link
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => l.classList.remove('active'));
+            const activeLink = document.querySelector(`.sidebar-nav .nav-link[href="#${targetId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            // Close offcanvas menu on mobile after click
+            const offcanvasElement = document.getElementById('sidebarNav');
+            const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement);
+            if (offcanvas) { offcanvas.hide(); }
+        }
+
+        // ------------------------------------------
+        // FUNGSI 1: FILTER & RENDER LAPORAN (Publik Dashboard)
+        // ------------------------------------------
+        function filterReports() {
+            const statusFilter = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : 'all';
+            const kategoriFilter = document.getElementById('filterKategori') ? document.getElementById('filterKategori').value : 'all';
+            let matchedCount = 0;
+            
+            if (reportListContainer) reportListContainer.innerHTML = ''; 
+            if (selectedReportDetail) selectedReportDetail.innerHTML = '<p class="text-center text-info">Belum ada laporan yang dipilih.</p>';
+            
+            // Hitung statistik
+            const countSelesai = reports.filter(r => r.status === 'selesai').length;
+            const countAktif = reports.filter(r => r.status === 'diajukan' || r.status === 'diproses').length;
+            
+            // Update Statistik
+            if(totalLaporan) totalLaporan.innerText = reports.length.toLocaleString();
+            if(laporanSelesai) laporanSelesai.innerText = countSelesai.toLocaleString();
+            if(laporanAktif) laporanAktif.innerText = countAktif.toLocaleString();
+
+            const filteredReports = reports.filter(report => {
+                const statusMatch = statusFilter === 'all' || report.status === statusFilter;
+                const kategoriMatch = kategoriFilter === 'all' || report.kategori === kategoriFilter;
+                return statusMatch && kategoriMatch;
+            });
+            
+            if (reportListContainer) {
+                filteredReports.forEach(report => {
+                    const statusClass = `status-badge-${report.status}`;
+                    const statusText = report.status.charAt(0).toUpperCase() + report.status.slice(1);
+                    
+                    const item = document.createElement('div');
+                    item.className = 'report-item p-3';
+                    item.setAttribute('data-id', report.id);
+                    item.onclick = function() { 
+                        document.querySelectorAll('.report-item').forEach(i => i.classList.remove('bg-info', 'text-white'));
+                        this.classList.add('bg-info', 'text-white');
+                        selectReport(report.id); 
+                    }; 
+
+                    item.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold">${report.title}</h6>
+                            <small class="badge ${statusClass} text-white">${statusText}</small>
+                        </div>
+                        <p class="mb-1 small text-muted">Lokasi: ${report.location}. Dilaporkan ${report.time}.</p>
+                        <small>Kategori: ${report.kategori.charAt(0).toUpperCase() + report.kategori.slice(1)}</small>
+                    `;
+                    reportListContainer.appendChild(item);
+                    matchedCount++;
+                });
+            }
+
+            if(countLaporan) countLaporan.innerText = matchedCount.toLocaleString();
+        }
+
+        // ------------------------------------------
+        // FUNGSI 2: RENDER DASHBOARD PETUGAS (BARU)
+        // ------------------------------------------
+        function renderOfficerDashboard() {
+            const officerLink = document.getElementById('officerDashboardLink');
+            if (!isOfficerLoggedIn) {
+                if (officerLink) officerLink.classList.add('d-none');
+                return;
+            }
+            
+            if (officerLink) officerLink.classList.remove('d-none'); // Tampilkan link sidebar
+
+            // 1. Update Officer Info & Balance (NEW)
+            document.getElementById('officerNameDisplay').innerText = currentOfficer.name;
+            document.getElementById('officerBalanceDisplay').innerText = `Rp ${currentOfficer.balance.toLocaleString('id-ID')}`; // Format currency
+            
+            // 2. Filter Tugas
+            // Tugas yang harus ditampilkan: Status Diajukan (belum di-assign) ATAU Status Diproses (di-assign ke P001)
+            const officerTasks = reports.filter(r => r.status !== 'selesai' && (r.assignedTo === currentOfficer.id || r.assignedTo === null));
+            
+            // Statistik
+            const activeTasks = officerTasks.filter(r => r.status === 'diproses' && r.assignedTo === currentOfficer.id);
+            const completedTasks = reports.filter(r => r.status === 'selesai' && r.completedBy === currentOfficer.name); 
+
+            document.getElementById('taskActiveCount').innerText = activeTasks.length.toLocaleString();
+            document.getElementById('taskCompletedToday').innerText = completedTasks.length.toLocaleString();
+
+            // 3. Render Task List
+            const taskListBody = document.getElementById('officerTaskList');
+            taskListBody.innerHTML = '';
+
+            if (officerTasks.length === 0) {
+                taskListBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-4">Hebat! Semua tugas telah ditangani atau belum ada laporan baru.</td></tr>';
+                return;
+            }
+
+            officerTasks.sort((a, b) => {
+                // Prioritas: Tugas Diproses Saya > Tugas Diajukan
+                if (a.assignedTo === currentOfficer.id && b.assignedTo !== currentOfficer.id) return -1;
+                if (a.assignedTo !== currentOfficer.id && b.assignedTo === currentOfficer.id) return 1;
+                // Prioritas: Paling baru di atas
+                return b.id - a.id;
+            }).forEach(task => {
+                let statusText = task.status.charAt(0).toUpperCase() + task.status.slice(1);
+                let statusClass = `status-badge-${task.status}`;
+                let actionButton = '';
+
+                if (task.status === 'diajukan' && task.assignedTo === null) {
+                    actionButton = `<button class="btn btn-sm btn-primary" onclick="updateTaskStatus(${task.id}, 'ambil')">Ambil Tugas</button>`;
+                } else if (task.status === 'diproses' && task.assignedTo === currentOfficer.id) {
+                    actionButton = `<button class="btn btn-sm btn-success" onclick="updateTaskStatus(${task.id}, 'selesai')">Tandai Selesai</button>`;
+                    statusText = 'Tugas Saya';
+                    statusClass = 'bg-primary';
+                } else if (task.status === 'diproses' && task.assignedTo !== currentOfficer.id) {
+                    statusText = 'Diproses Petugas Lain';
+                    statusClass = 'bg-secondary';
+                    actionButton = `<button class="btn btn-sm btn-outline-secondary" disabled>Diproses</button>`;
+                }
+                
+                // NEW: Fee display
+                const feeDisplay = `Rp ${task.iuranPerTask.toLocaleString('id-ID')}`;
+                
+                taskListBody.innerHTML += `
+                    <tr>
+                        <td>#${task.id}</td>
+                        <td>${task.location}</td>
+                        <td>${task.kategori.charAt(0).toUpperCase() + task.kategori.slice(1)}</td>
+                        <td class="fw-bold text-success">${feeDisplay}</td>
+                        <td><span class="badge ${statusClass} text-white">${statusText}</span></td>
+                        <td>${actionButton}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        // ------------------------------------------
+        // FUNGSI 3: UPDATE STATUS TUGAS PETUGAS (BARU)
+        // ------------------------------------------
+        function updateTaskStatus(taskId, action) {
+            const taskIndex = reports.findIndex(r => r.id === taskId);
+            if (taskIndex === -1) return;
+
+            if (action === 'ambil') {
+                reports[taskIndex].status = 'diproses';
+                reports[taskIndex].assignedTo = currentOfficer.id;
+                alert(`Tugas #${taskId} berhasil Anda ambil. Status diubah menjadi DIPROSES. Selamat bekerja!`);
+            } else if (action === 'selesai') {
+                // Konfirmasi dan pembayaran
+                if (!confirm(`Yakin ingin menandai tugas #${taskId} SELESAI? Dana iuran warga (Rp ${reports[taskIndex].iuranPerTask.toLocaleString('id-ID')}) akan langsung masuk ke dompet Anda.`)) return;
+
+                reports[taskIndex].status = 'selesai';
+                reports[taskIndex].completedBy = currentOfficer.name;
+                reports[taskIndex].isPaid = true; // Mark as paid
+                
+                // Tambahkan iuran ke saldo petugas
+                currentOfficer.balance += reports[taskIndex].iuranPerTask; 
+
+                alert(`Tugas #${taskId} telah ditandai SELESAI. Dana iuran sebesar Rp ${reports[taskIndex].iuranPerTask.toLocaleString('id-ID')} telah masuk ke Dompet Tugas Anda. Saldo sekarang: Rp ${currentOfficer.balance.toLocaleString('id-ID')}. Terima kasih, ${currentOfficer.name}!`);
+            }
+
+            // Refresh dashboards
+            filterReports(); 
+            renderOfficerDashboard(); 
+        }
+
+        // ------------------------------------------
+        // FUNGSI Lain (Tetap Sama)
+        // ------------------------------------------
+
+        function selectReport(reportId) {
+            const report = reports.find(r => r.id === reportId);
+            if (!report) return;
+
+            const statusClass = `status-badge-${report.status}`;
+            const statusText = report.status.charAt(0).toUpperCase() + report.status.slice(1);
+            const petugasName = report.assignedTo ? (report.assignedTo === currentOfficer.id ? 'Anda' : `Petugas ${report.completedBy || report.assignedTo}`) : 'Belum ditugaskan';
+
+
+            selectedReportDetail.innerHTML = `
+                <h5 class="fw-bold text-dark">${report.title}</h5>
+                <p class="badge ${statusClass} text-white">${statusText}</p>
+                <ul class="list-unstyled small">
+                    <li><i class="fa-solid fa-map-marker-alt me-2 text-primary"></i> <strong>Lokasi:</strong> ${report.location}</li>
+                    <li><i class="fa-solid fa-clock me-2 text-primary"></i> <strong>Waktu Laporan:</strong> ${report.time}</li>
+                    <li><i class="fa-solid fa-tag me-2 text-primary"></i> <strong>Kategori:</strong> ${report.kategori.charAt(0).toUpperCase() + report.kategori.slice(1)}</li>
+                    <li><i class="fa-solid fa-person-digging me-2 text-primary"></i> <strong>Ditangani Oleh:</strong> ${petugasName}</li>
+                    <li><i class="fa-solid fa-money-bill-wave me-2 text-primary"></i> <strong>Biaya Jasa:</strong> Rp ${report.iuranPerTask.toLocaleString('id-ID')}</li>
+                </ul>
+                <p class="mt-3"><strong>Deskripsi:</strong> ${report.desc}</p>
+                <hr>
+                <div class="alert alert-warning small">
+                    <i class="fa-solid fa-info-circle me-2"></i> Ini adalah simulasi detail laporan dan status *tracking*.
+                </div>
+            `;
+        }
+
+        function toggleView(viewType) {
+            const btnListView = document.getElementById('btnListView');
+            const btnMapView = document.getElementById('btnMapView');
+            const mapView = document.getElementById('mapViewContainer');
+            const listView = document.getElementById('listViewContainer');
+            
+            btnListView.classList.remove('active', 'btn-dark');
+            btnListView.classList.add('btn-outline-dark');
+            btnMapView.classList.remove('active', 'btn-dark');
+            btnMapView.classList.add('btn-outline-dark');
+            
+            if (viewType === 'map') {
+                btnMapView.classList.add('active', 'btn-dark');
+                btnMapView.classList.remove('btn-outline-dark');
+                mapView.style.display = 'block';
+                listView.style.display = 'none';
+                
+            } else {
+                btnListView.classList.add('active', 'btn-dark');
+                btnListView.classList.remove('btn-outline-dark');
+                mapView.style.display = 'none';
+                listView.style.display = 'block';
+            }
+        }
+        
+        function simulateGps() {
+            const gpsInput = document.getElementById('reportLocation');
+            gpsInput.value = "Mengambil Lokasi...";
+            setTimeout(() => {
+                gpsInput.value = "Jln. Parakan Saat 2, Cisaranten Endah, Arcamanik, Bandung (GPS Akurat)";
+                alert('Lokasi GPS berhasil diperbarui!');
+            }, 1500);
+        }
+        
+        document.getElementById('reportPhoto').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('photoPreview');
+            const previewText = document.getElementById('previewText');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    previewText.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+                previewText.style.display = 'block';
+            }
+        });
+
+        document.getElementById('reportForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            const category = document.getElementById('reportCategory').value;
+            const description = document.getElementById('reportDescription').value;
+            
+            if (!category) {
+                alert('Mohon pilih kategori sampah.');
+                return;
+            }
+            
+            alert(`Laporan Berhasil Diajukan!\nKategori: ${category}\nLokasi: Jln. Parakan Saat 2, Bandung\nDeskripsi: ${description}\n\nStatus: Diajukan. Anda dapat memantau status di Dashboard.`);
+
+            // Add notification
+            addNotification('Laporan sampah berhasil diajukan!', 'success');
+
+            const newReport = {
+                id: reports.length + 1,
+                status: 'diajukan',
+                kategori: category,
+                title: `Laporan Baru: ${description.substring(0, 20)}...`,
+                location: 'Jln. Parakan Saat 2',
+                time: 'Baru saja',
+                desc: description,
+                assignedTo: null,
+                completedBy: null,
+                iuranPerTask: IURAN_PER_TASK, // Set iuran for new reports
+                isPaid: false
+            };
+            reports.unshift(newReport);
+            filterReports();
+            renderOfficerDashboard(); // Refresh tugas petugas
+            
+            this.reset();
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('previewText').style.display = 'block';
+            var modalElement = document.getElementById('reportModal');
+            var modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) { modal.hide(); }
+        });
+        
+        document.getElementById('pengaduanForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            alert('Pengaduan Anda telah terkirim! Tim kami akan memprosesnya secepat mungkin. (Simulasi)');
+            this.reset();
+            var modalElement = document.getElementById('complaintFormModal');
+            var modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) { modal.hide(); }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            // SIMULASI: Jika user login sebagai petugas
+            const email = document.getElementById('loginEmail').value;
+            if (email === 'petugas@cleanhub.id') { 
+                isOfficerLoggedIn = true;
+                renderOfficerDashboard();
+                navigateToSection('dashboardPetugas');
+                alert('Login berhasil! Anda masuk sebagai Petugas Kebersihan.');
+            } else {
+                isOfficerLoggedIn = false;
+                renderOfficerDashboard();
+                navigateToSection('hero');
+                alert('Login berhasil! Anda masuk sebagai Pengguna Umum.');
+            }
+            
+            var modalElement = document.getElementById('authModal');
+            var modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) { modal.hide(); }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            alert('Pendaftaran berhasil! Silakan Login menggunakan akun Anda. (Simulasi)');
+            var loginTab = document.getElementById('pills-login-tab');
+            var tab = new bootstrap.Tab(loginTab);
+            tab.show();
+        });
+
+        // Event Listener untuk Navigasi Sidebar
+        document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                navigateToSection(targetId);
+            });
+        });
+
+        // ==============================================
+        // INITIALIZATION
+        // ==============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            filterReports();
+            toggleView('list');
+            renderOfficerDashboard();
+
+            // Tentukan halaman awal yang ditampilkan
+            const initialSection = isOfficerLoggedIn ? 'dashboardPetugas' : 'hero';
+            navigateToSection(initialSection);
+
+            // Tampilkan bagian Dampak Lingkungan dan Berita & Pengumuman di beranda
+            if (!isOfficerLoggedIn) {
+                document.getElementById('dampak-lingkungan').style.display = 'block';
+                document.getElementById('berita-pengumuman').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
